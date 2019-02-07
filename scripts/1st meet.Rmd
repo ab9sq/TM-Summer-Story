@@ -1,0 +1,70 @@
+First day
+========================================================
+
+### load the corpus
+
+```{r load, tidy=FALSE}
+library(tm)
+library(wordcloud)
+library(ggplot2)
+
+story.1st <- Corpus(DirSource(directory = "E:/LaTeX/books/1st meet/text/for word cloud/"))
+story.raw.1st <- story.1st
+story.1st <- tm_map(story.1st, tolower)
+story.1st <- tm_map(story.1st, removePunctuation)
+story.1st <- tm_map(story.1st, removeNumbers)
+story.1st <- tm_map(story.1st, removeWords, stopwords('english'))
+story.1st.copy <- story.1st
+summary(story.1st)
+story.1st
+meta(story.1st[[2]])
+```
+### Analysis
+```{r analysis, fig.width=11, fig.height=8, tidy=FALSE}
+story.1st.stem  <- tm_map(story.1st, stemDocument)
+
+
+myTdm.1st <- TermDocumentMatrix(story.1st, control=list(minWordLength = 1))
+myTdm.1st
+myTdm.1st.s <- TermDocumentMatrix(story.1st.stem, control=list(minWordLength = 1))
+myTdm.1st.s
+
+
+findFreqTerms(myTdm.1st, lowfreq = 10)
+termFreq.1st <- rowSums(as.matrix(myTdm.1st))
+termFreq.1st <- subset(termFreq.1st, termFreq.1st >=9)
+
+qplot(names(termFreq.1st), termFreq.1st, geom="bar",xlab="Terms")+coord_flip()
+barplot(termFreq.1st, las=2)
+
+m.1st <-as.matrix(myTdm.1st)
+wordFreq.1st <- sort(rowSums(m.1st), decreasing=TRUE)
+set.seed(12345)
+wordcloud(words=names(wordFreq.1st),
+          freq = wordFreq.1st,
+          min.freq=2,
+          random.order = F)
+```
+now do it with stemmed and rebuild
+```{r stem and re, fig.width=11, fig.height=8, tidy=FALSE}
+story.comp.1st <- tm_map(story.1st.stem, stemCompletion, dictionary=story.1st.copy)
+
+myTdm.comp.1st <- TermDocumentMatrix(story.comp.1st, control=list(minWordLength = 1))
+myTdm.comp.1st
+
+findFreqTerms(myTdm.comp.1st, lowfreq = 500)
+termFreq.comp.1st <- rowSums(as.matrix(myTdm.comp.1st))
+termFreq.comp.1st <- subset(termFreq.comp.1st, termFreq.comp >=500)
+
+qplot(names(termFreq.comp.1st), termFreq.comp, geom="bar",xlab="Terms")+coord_flip()
+barplot(termFreq.comp.1st, las=2)
+
+m.comp.1st <- as.matrix(myTdm.comp.1st)
+wordFreq.comp.1st <- sort(rowSums(m.comp.1st), decreasing=TRUE)
+set.seed(12345)
+wordcloud(words=names(wordFreq.comp.1st),
+          freq = wordFreq.comp.1st,
+          min.freq=2,
+          random.order = F,
+          rot.per = .1)
+```

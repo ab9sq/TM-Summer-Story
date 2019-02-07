@@ -1,0 +1,93 @@
+OZ
+========================================================
+looking at true authorship
+---------------------------------
+
+```{r}
+library(tm)
+library(kernlab)
+```
+generate the Corpus
+```{r oz corpus}
+oz <- Corpus(DirSource("~/R/workspace/TM/Data/Oz/Wiz"))
+oz
+meta(oz, 
+     tag = "Author",
+     type = "local") <- c(rep("Lyman Frank Baum",3),
+                          rep("Ruth Plumly Thompson",2))
+meta(oz,
+     "Heading",
+     type = "local") <-
+   c("The WonderfulWizard of Oz",
+     "The Marvelous Land of Oz",
+     "Ozma of Oz",
+     "The Royal Book of Oz",
+     "Ozoplaning witht he Wizard of Oz")
+
+meta(oz[[1]])
+```
+Clean up Corpus
+```{r clean up}
+oz.clean <- tm_map(oz, tolower)
+oz.clean <- tm_map(oz.clean, removePunctuation)
+oz.clean <- tm_map(oz.clean, removeNumbers)
+oz.clean <- tm_map(oz.clean, removeWords, stopwords('english'))
+
+
+
+```
+
+create some author specific term matrixs and also product a term matrix for *The Royal Book of Oz*
+```{r create term matrix}
+
+ozMat <- DocumentTermMatrix(oz.clean)
+
+ozMatBaum  <- DocumentTermMatrix(oz[1:3])
+ozMatBaum.clean  <- DocumentTermMatrix(oz.clean[1:3])
+
+ozMatRoyal  <- DocumentTermMatrix(oz[4])
+ozMatRoyal.clean  <- DocumentTermMatrix(oz.clean[4])
+
+ozMatThompson  <- DocumentTermMatrix(oz[5])
+ozMatThompson.clean  <- DocumentTermMatrix(oz.clean[5])
+```
+
+now some basic analysis
+text inerstection
+Most frequent words (selection so about 100 most frequent words are
+used)
+```{r text freq}
+baum <- findFreqTerms(ozMatBaum, 110)
+royal <- findFreqTerms(ozMatRoyal, 40)
+thomp <- findFreqTerms(ozMatThompson, 35)
+
+baum.clean <- findFreqTerms(ozMatBaum.clean, 85)
+royal.clean <- findFreqTerms(ozMatRoyal.clean, 30)
+thomp.clean <- findFreqTerms(ozMatThompson.clean, 26)
+```
+now the intersection
+```{r text intersection}
+length(intersect(thomp,royal))
+length(intersect(baum, royal))
+
+length(intersect(thomp.clean,royal.clean))
+length(intersect(baum.clean, royal.clean))
+```
+####PCA
+PCAusing the kernlab package
+```{r pcs}
+ozmat  <- DocumentTermMatrix(makeChunks(oz.clean, 100),
+                             list(weighting = weightTfIdf))
+k <- kpca(as.matrix(ozmat), 
+          features = 2)
+
+plot(rotated(k),
+     col = c(rep("black", 10),
+             rep("red", 14),
+             rep("blue", 10),
+             rep("yellow", 6),
+             rep("green",4)),
+     pty = "s",
+     xlab = "1st Principal Component",
+     ylab = "2nd Principal Component")
+```

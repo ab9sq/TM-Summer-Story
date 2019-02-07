@@ -1,0 +1,85 @@
+Story
+========================================================
+
+```{r init}
+library(tm)
+library(wordcloud)
+library(ggplot2)
+```
+load the story
+```{r load}
+story <- Corpus(DirSource(directory = "~/R/workspace/TM/Data/my story/"))
+story.raw <- story
+story <- tm_map(story, tolower)
+story <- tm_map(story, removePunctuation)
+story <- tm_map(story, removeNumbers)
+story <- tm_map(story, removeWords, stopwords('english'))
+story.copy <- story
+summary(story)
+story
+meta(story[[1]])
+```
+now to start the analysis
+```{r analysis, fig.width=11, fig.height=8, tidy=FALSE}
+story.stem  <- tm_map(story, stemDocument)
+
+
+myTdm <- TermDocumentMatrix(story, control=list(minWordLength = 1))
+myTdm
+myTdm.s <- TermDocumentMatrix(story.stem, control=list(minWordLength = 1))
+myTdm.s
+
+
+findFreqTerms(myTdm, lowfreq = 10)
+termFreq <- rowSums(as.matrix(myTdm))
+termFreq <- subset(termFreq, termFreq >=9)
+
+qplot(names(termFreq), termFreq, geom="bar",xlab="Terms")+coord_flip()
+barplot(termFreq, las=2)
+
+m<-as.matrix(myTdm)
+wordFreq <- sort(rowSums(m), decreasing=TRUE)
+set.seed(12345)
+wordcloud(words=names(wordFreq),
+          freq = wordFreq,
+          min.freq=2,
+          random.order = F)
+```
+now do it with stemmed and rebuild
+```{r stem and re, fig.width=11, fig.height=8, tidy=FALSE}
+story.comp <- tm_map(story.stem, stemCompletion, dictionary=story.copy)
+
+myTdm.comp <- TermDocumentMatrix(story.comp, control=list(minWordLength = 1))
+myTdm.comp
+
+findFreqTerms(myTdm.comp, lowfreq = 500)
+termFreq.comp <- rowSums(as.matrix(myTdm.comp))
+termFreq.comp <- subset(termFreq.comp, termFreq.comp >=500)
+
+qplot(names(termFreq.comp), termFreq.comp, geom="bar",xlab="Terms")+coord_flip()
+barplot(termFreq.comp, las=2)
+
+m.comp <- as.matrix(myTdm.comp)
+wordFreq.comp <- sort(rowSums(m.comp), decreasing=TRUE)
+set.seed(12345)
+wordcloud(words=names(wordFreq.comp),
+          freq = wordFreq.comp,
+          min.freq=2,
+          random.order = F,
+          rot.per = .1)
+````
+ clustering
+````{r clustering, tidy=FALSE, fig.width=8, fig.height=11}
+myTdm2 <- removeSparseTerms(myTdm.comp, sparse = 0.95)
+m2 <- as.matrix(myTdm2)
+distMatrix <- dist(scale(m2))
+fit <- hclust(distMatrix, method="ward")
+plot(fit)
+rect.hclust(fit, k=10)
+
+````
+
+### Social network of words
+````{r, tidy=FALSE}
+termDocMatrix  <- m2
+termDocMatrix[5:10]
