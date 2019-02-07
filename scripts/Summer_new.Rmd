@@ -21,6 +21,9 @@ story.1st <- tm_map(story.1st,  content_transformer(tolower))
 story.1st <- tm_map(story.1st,  content_transformer(removePunctuation))
 story.1st <- tm_map(story.1st,  content_transformer(removeNumbers))
 story.1st <- tm_map(story.1st, removeWords, stopwords('english'))
+#
+# need to stopword summer summers todd
+
 story.1st.copy <- story.1st
 summary(story.1st)
 story.1st
