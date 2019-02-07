@@ -1,6 +1,9 @@
 ---
 title: "Summer"
-output: pdf_document
+output: 
+  pdf_document: 
+    fig_height: 8
+    fig_width: 8
 ---
 
 ```{r setup, include=FALSE}
@@ -21,8 +24,15 @@ story.1st <- tm_map(story.1st,  content_transformer(tolower))
 story.1st <- tm_map(story.1st,  content_transformer(removePunctuation))
 story.1st <- tm_map(story.1st,  content_transformer(removeNumbers))
 story.1st <- tm_map(story.1st, removeWords, stopwords('english'))
+SWList <-  c("summer", 
+             "summers", 
+             "todd", 
+             "todds", 
+             "wayne", 
+             "waynes")
+story.1st <- tm_map(story.1st, removeWords, SWList)
 #
-# need to stopword summer summers todd
+# need to stopword summer summers todd wayne and waynes
 
 story.1st.copy <- story.1st
 summary(story.1st)
@@ -44,7 +54,7 @@ findFreqTerms(myTdm.1st, lowfreq = 10)
 termFreq.1st <- rowSums(as.matrix(myTdm.1st))
 termFreq.1st <- subset(termFreq.1st, termFreq.1st >=9)
 
-qplot(names(termFreq.1st), termFreq.1st, geom="bar",xlab="Terms")+coord_flip()
+#qplot(names(termFreq.1st), termFreq.1st, geom="bar",xlab="Terms")+coord_flip()
 barplot(termFreq.1st, las=2)
 
 m.1st <-as.matrix(myTdm.1st)
@@ -52,7 +62,7 @@ wordFreq.1st <- sort(rowSums(m.1st), decreasing=TRUE)
 set.seed(12345)
 wordcloud(words=names(wordFreq.1st),
           freq = wordFreq.1st,
-          min.freq=20,
+          min.freq=75,
           random.order = F)
 ```
 now do it with stemmed and rebuild
