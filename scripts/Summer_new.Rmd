@@ -176,7 +176,15 @@ SWList <-  c("summer",
              "long",
              "longer",
              "tell",
-             "telling")
+             "telling",
+             "amber",
+"dawn",
+"jeff",
+"jake",
+"Spillers",
+"bill",
+"fraser")
+
 story.1st <- tm_map(story.1st, removeWords, SWList)
 
 
